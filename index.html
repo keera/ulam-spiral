@@ -82,6 +82,22 @@ UlamSpiral.STATES = {
   DOWN: 4
 }
 
+UlamSpiral.prototype.isPrime = function(n) {
+  // If even, not prime
+  if (n % 2 == 0 || n == 1) {
+    return false;
+  }
+  // Check up to sqrt
+  var sqrt = Math.floor(Math.sqrt(n) + 1);
+  // Check odd factors
+  for (var i = 3; i < sqrt; i+=2) {
+    if (n % i == 0) {
+      return false;
+    }
+  }
+
+  return true;
+}
 // Initialize the spiral
 UlamSpiral.prototype.init = function(ctx) {
   // Set the context
@@ -92,10 +108,10 @@ UlamSpiral.prototype.init = function(ctx) {
   this.pos.y = canvas.height / 2;
   this.currTurns = 0;
   this.maxStepsPerTurn = 1; // 1, 2
-  this.stepDelay = 0.1; // Seconds per move
+  this.stepDelay = 0.5; // Seconds per move
   // Form a square
-  this.stepDistance.x = 15; 
-  this.stepDistance.y = 15;
+  this.stepDistance.x = 25; 
+  this.stepDistance.y = 25;
   this.currSteps = 0;
   this.startTime = (new Date()).getTime();
 }
@@ -133,6 +149,15 @@ UlamSpiral.prototype.step = function() {
 
 }
 
+UlamSpiral.prototype.isPerfectSquare = function(n) {
+  var sqrt = Math.floor(Math.sqrt(n));
+  if (sqrt * sqrt == n) {
+    return true;
+  }
+
+  return false;
+}
+
 // Change direction
 UlamSpiral.prototype.updateTurn = function() {
   console.log("Turning...");
@@ -166,9 +191,15 @@ UlamSpiral.prototype.updateMaxStepsPerTurn = function() {
 }
 
 UlamSpiral.prototype.draw = function() {
-  //this.ctx.fillStyle = "rgb(200,0,0)";
+  if (this.isPrime(this.currNum)) {
+    this.ctx.fillStyle = "rgb(200,0,0)";
+  } else if(this.isPerfectSquare(this.currNum)) {
+    this.ctx.fillStyle = "rgb(000,000,200)";
+  } else {
+    this.ctx.fillStyle = "rgb(200,200,200)";
+  }
   //this.ctx.fillRect(this.pos.x, this.pos.y, 10, 10);
-  this.ctx.fillText(this.currNum, this.pos.x, this.pos.y, 10);
+  this.ctx.fillText(this.currNum, this.pos.x, this.pos.y, 20);
   this.update();
 }
 
