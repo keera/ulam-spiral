@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<head>
+</head>
+<body>
+    <canvas id="main" height="1000" width="1000"></canvas>
+</body>
+<script type="text/javascript">
+  window.requestAnimFrame = (function(){
+      return  window.requestAnimationFrame ||
+      window.webkitRequestAnimationFrame ||
+      window.mozRequestAnimationFrame    ||
+      window.oRequestAnimationFrame      ||
+      window.msRequestAnimationFrame     ||
+      function(/* function */ callback, /* DOMElement */ element){
+      window.setTimeout(callback, 1000/60);
+      };
+  })();
+
+var canvas = null;
+
+function Canvas(id) {
+  this.id = id;
+  this.context;
+  this.width;
+  this.height;
+}
+
+Canvas.prototype.getContext = function() {
+  return this.context;
+}
+
+Canvas.prototype.setBackground = function(src) {
+  var _this = this;
+  var imageObj = new Image();
+  imageObj.onload = function() {
+    _this.context.drawImage(imageObj, 0, 0);
+  }
+  imageObj.src = src;
+}
+
+Canvas.prototype.init = function() {
+  var canvas = document.getElementById(this.id);
+  if (canvas.getContext) {
+    this.context = canvas.getContext('2d');
+  }
+  this.width = canvas.width;
+  this.height = canvas.height;
+}
+
+Canvas.prototype.getWidth = function() {
+  return this.width;
+}
+
+Canvas.prototype.getHeight = function() {
+  return this.height;
+}
+
+// Initialize the canvas
+function initializeBoard() { 
+  canvas = new Canvas('main');
+  canvas.init();
+}
+
+function UlamSpiral() {
+  this.ctx;
+  this.state;
+  this.pos = {x: '', y: ''};
+  this.currTurns;
+  this.maxStepsPerTurn;
+  this.stepDelay;
+  this.stepDistance = {x: '', y: ''};
+  this.currSteps;
+  this.startTime;
+}
+
+// Directions
+UlamSpiral.STATES = {
+  LEFT: 1,
+  RIGHT: 2,
+  UP: 3,
+  DOWN: 4
+}
+
+// Initialize the spiral
+UlamSpiral.prototype.init = function(ctx) {
+  // Set the context
+  this.ctx = ctx; // bad bad bad
+  this.state = UlamSpiral.STATES.RIGHT; // Move right initially
+  // Start in the center
+  this.pos.x = canvas.width / 2; // This is bad
+  this.pos.y = canvas.height / 2;
+  this.currTurns = 0;
+  this.maxStepsPerTurn = 1; // 1, 2
+  this.stepDelay = 0.5; // Seconds per move
+  // Form a square
+  this.stepDistance.x = 15; 
+  this.stepDistance.y = 15;
+  this.currSteps = 0;
+  this.startTime = (new Date()).getTime();
+}
+
+UlamSpiral.prototype.update = function() {
+  var currentTime = (new Date()).getTime();
+  var delta = (currentTime - this.startTime) / 1000;
+  if (delta > this.stepDelay) {
+    this.startTime = currentTime;
+    this.step();
+  } 
+}
+
+UlamSpiral.prototype.step = function() {
+  switch (this.state) {
+    case UlamSpiral.STATES.LEFT:
+      this.pos.x -= this.stepDistance.x;
+    break;
+    case UlamSpiral.STATES.RIGHT:
+      this.pos.x += this.stepDistance.x;
+    break;
+    case UlamSpiral.STATES.UP:
+      this.pos.y -= this.stepDistance.y;
+    break;
+    case UlamSpiral.STATES.DOWN:
+      this.pos.y += this.stepDistance.y;
+    break;
+  }
+
+  this.currSteps++;
+  if (this.currSteps == this.maxStepsPerTurn) {
+    this.updateTurn();
+    this.updateMaxStepsPerTurn();
+  }
+
+}
+
+// Change direction
+UlamSpiral.prototype.updateTurn = function() {
+  console.log("Turning...");
+  this.currTurns++;
+  switch (this.state) {
+    case UlamSpiral.STATES.LEFT:
+      this.state = UlamSpiral.STATES.DOWN;
+    break;
+    case UlamSpiral.STATES.RIGHT:
+      this.state = UlamSpiral.STATES.UP;
+    break;
+    case UlamSpiral.STATES.UP:
+      this.state = UlamSpiral.STATES.LEFT;
+    break;
+    case UlamSpiral.STATES.DOWN:
+      this.state = UlamSpiral.STATES.RIGHT;
+    break;
+  }
+  // Reset steps since new turn
+  this.currSteps = 0;
+  console.log("We are at turn #: " + this.currTurns);
+}
+
+UlamSpiral.prototype.updateMaxStepsPerTurn = function() {
+  console.log("Updating max steps");
+  if (this.currTurns == 2) {
+    this.maxStepsPerTurn++;
+    this.currTurns = 0;
+  }
+
+}
+
+UlamSpiral.prototype.draw = function() {
+  this.ctx.fillStyle = "rgb(200,0,0)";
+  this.ctx.fillRect(this.pos.x, this.pos.y, 10, 10);
+  this.update();
+}
+
+UlamSpiral.prototype.animate = function() {
+  var _this = this;
+  requestAnimFrame( function() { _this.animate(); }  );
+  _this.draw();
+}
+
+
+initializeBoard(); // ewww
+var spiral = new UlamSpiral();
+spiral.init(canvas.getContext());
+spiral.animate();
+</script>
+</html>
